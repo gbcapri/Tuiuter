@@ -1,21 +1,16 @@
-import jsonwebtoken from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
-const generateAccessToken = (user) =>
-  jsonwebtoken.sign(
+export const generateToken = (user) =>
+  jwt.sign(
     {
       _id: user._id,
       email: user.email,
-      role: user.role,
     },
     process.env.JWT_PRIVATE_KEY,
     {
-      expiresIn: "1d",
+      expiresIn: "1h",
     }
   );
 
-const verifyAccessToken = (token) => jsonwebtoken.verify(token, process.env.JWT_PRIVATE_KEY);
-
-export default {
-  generateAccessToken,
-  verifyAccessToken,
-};
+export const verifyToken = (token) =>
+  jwt.verify(token, process.env.JWT_PRIVATE_KEY);

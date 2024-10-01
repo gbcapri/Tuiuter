@@ -1,71 +1,79 @@
-import Post from '../models/post-model.js';
-import jwtService from '../services/jwt-service.js';
+import Post from "../models/post-model.js";
 
-// Criação de um novo post
-export const create = async (req, res) => {
+export const store = async (req, res) => {
   try {
-    const decodedUser = jwtService.verifyAccessToken(req.headers.authorization);
+    const { text } = req.body;
+    const user = req.user._id;
 
-    const post = await Post.create({
-      text: req.body.text,
-      user: decodedUser.id, // Associa o post ao usuário autenticado
+    const content = await Post.create({
+      text,
+      user,
     });
 
-    res.status(201).json(post);
+    res.status(201).json(content);
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(500).send(error.message);
   }
 };
 
-// Listar todos os posts do usuário autenticado
+export const index = async (req, res) => {
+  try {
+    const content = await Post.find().exec();
+
+    res.json(content);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
 export const show = async (req, res) => {
   try {
-    // Decodifica o token para obter o usuário autenticado
-    const decodedUser = jwtService.verifyAccessToken(req.headers.authorization);
+    const content = await Post.findById(req.params.id).exec();
 
-    const posts = await Post.find({ user: decodedUser.id }).exec();
-    res.status(200).json(posts);
+    res.json(content);
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(500).send(error.message);
   }
 };
 
-// Atualizar um post do usuário autenticado
 export const update = async (req, res) => {
   try {
-    // Decodifica o token para obter o usuário autenticado
-    const decodedUser = jwtService.verifyAccessToken(req.headers.authorization);
+    const user = req.user._id;
+    const { text } = req.body;
 
-    // Verifica se o post pertence ao usuário autenticado
-    const post = await Post.findOne({ _id: req.params.id, user: decodedUser.id }).exec();
-    if (!post) {
-      return res.status(404).json({ error: 'Post não encontrado ou não pertence ao usuário' });
+    const content = await Post.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        user,
+      },
+      { text }
+    ).exec();
+
+    if (content) {
+      res.json(content);
+    } else {
+      res.sendStatus(403);
     }
-
-    post.text = req.body.text || post.text;
-    await post.save();
-
-    res.status(200).json(post);
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(500).send(error.message);
   }
 };
 
-// Deletar um post do usuário autenticado
 export const destroy = async (req, res) => {
   try {
-    // Decodifica o token para obter o usuário autenticado
-    const decodedUser = jwtService.verifyAccessToken(req.headers.authorization);
+    const user = req.user._id;
 
-    // Verifica se o post pertence ao usuário autenticado
-    const post = await Post.findOne({ _id: req.params.id, user: decodedUser.id }).exec();
-    if (!post) {
-      return res.status(404).json({ error: 'Post não encontrado ou não pertence ao usuário' });
+    const content = await Post.findOneAndDelete({
+      _id: req.params.id,
+      user,
+    }).exec();
+
+    if (content) {
+      res.json(content);
+    } else {
+      res.sendStatus(403);
     }
-
-    await post.remove();
-    res.status(200).json({ message: 'Post deletado com sucesso' });
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(500).send(error.message);
   }
 };

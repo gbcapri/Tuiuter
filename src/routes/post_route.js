@@ -1,14 +1,23 @@
-import express from 'express';
-import { createPost, getUserPosts, updatePost, deletePost } from '../controllers/post-controller.js';
+import { Router } from "express";
+import authenticator from "../middlewares/authenticator.js";
+import {
+  destroy,
+  index,
+  show,
+  store,
+  update,
+} from "../controllers/post-controller.js";
+const router = Router();
 
-const router = express.Router();
+// Rotas públicas
+router.get("/", index);
+router.get("/:id", show);
 
-router.post('/', createPost);
+router.use(authenticator);
 
-router.get('/', getUserPosts);
-
-router.put('/:id', updatePost);
-
-router.delete('/:id', deletePost);
+// Rotas privadas
+router.post("/", store);
+router.put("/:id", update);
+router.delete("/:id", destroy);
 
 export default router;
